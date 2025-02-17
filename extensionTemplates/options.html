@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Extension Options</title>
+    <style>
+      body { font-family: sans-serif; margin: 20px; }
+      label { display: block; margin-bottom: 10px; }
+      input[type="url"] { width: 100%; padding: 8px; margin-bottom: 10px; }
+      button { padding: 8px 12px; }
+      .status { margin-top: 10px; color: green; }
+    </style>
+  </head>
+  <body>
+    <h1>Extension Options</h1>
+    <label for="urlInput">Target URL:</label>
+    <input type="url" id="urlInput" placeholder="Enter URL" />
+    <button id="saveButton">Save</button>
+    <div class="status" id="status"></div>
+
+    <script src="options.js"></script>
+  </body>
+</html>

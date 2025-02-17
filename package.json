@@ -1,0 +1,13 @@
+{
+  "name": "quick-launch-extension",
+  "version": "1.0.0",
+  "description": "A project to create a Chrome extension using Bun",
+  "type": "module",
+  "scripts": {
+    "start": "bun run createExtension.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "prettier": "^3.5.1"
+  }
+}

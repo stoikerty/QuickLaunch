@@ -29,7 +29,8 @@ Imagine opening Chrome and being able to click a single icon to jump directly to
    Make sure you have [Bun](https://bun.sh) installed, then run the following command in your terminal:
 
    ```bash
-   bun run createExtension.ts "https://mail.google.com/?authuser=your.email@example.com#inbox"
+   bun i
+   bun start "https://mail.google.com/?authuser=your.email@example.com#inbox"
    ```
 
    It's just a typescript file so you can run it with any other tool you like that automatically converts typescript.
