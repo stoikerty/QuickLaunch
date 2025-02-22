@@ -109,21 +109,23 @@ async function main() {
     mkdirSync(extensionDir);
   }
 
-  // Create manifest.json.
+  // Create manifest.json using Manifest V3.
   const manifest = {
-    manifest_version: 2,
+    manifest_version: 3,
     name: `QuickLaunch: ${pageTitle}`,
     version: '1.0',
     description: `Opens a configurable URL when clicked. Default: ${defaultTarget}`,
-    browser_action: {
+    action: {
       default_title: `Go to ${pageTitle}`,
       default_icon: 'icon.png',
     },
     background: {
-      scripts: ['background.js'],
-      persistent: false,
+      service_worker: 'background.js',
     },
-    options_page: 'options.html',
+    options_ui: {
+      page: 'options.html',
+      open_in_tab: false,
+    },
     permissions: ['tabs', 'storage'],
   };
 

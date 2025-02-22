@@ -1,6 +1,6 @@
 const DEFAULT_URL = '__DEFAULT_URL__';
 
-chrome.browserAction.onClicked.addListener(() => {
+chrome.action.onClicked.addListener(() => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const currentTab = tabs[0];
     // Define common new tab URLs for Chromium-based browsers.
