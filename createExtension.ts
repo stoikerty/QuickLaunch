@@ -2,19 +2,19 @@
 /**
  * createExtension.ts
  *
- * Usage: bun run createExtension.ts <DEFAULT_URL>
- * Example: bun run createExtension.ts "https://mail.google.com/?authuser=example@gmail.com#inbox"
+ * Usage: bun run createExtension.ts <DEFAULT_URL> [OPTIONAL_SUFFIX]
+ * Example: bun run createExtension.ts "https://mail.google.com/?authuser=example@gmail.com#inbox" "beta"
  *
- * This script creates a Chrome extension in a folder named "quick-launch-<hostname>".
+ * This script creates a Chrome extension in a folder named "quick-launch-<hostname>[-<suffix>]".
  * When the extension icon is clicked, it opens a configurable URL.
  *
  * The default bookmark target is the original URL provided.
  * However, the script fetches the page to resolve its hostname (and, in the case of Gmail,
  * to extract the "continue" URL) so that the favicon and extension name can be set based on that.
  *
- * The extension’s name will be "QuickLaunch: <hostname>".
+ * The extension’s name will be "QuickLaunch: <hostname>" (with a suffix appended, if provided).
  *
- * This version fetches a high-resolution (64px) favicon using Google's faviconV2 service.
+ * This version fetches a high-resolution (32px) favicon using Google's faviconV2 service.
  * It also loads supporting files (background.js, options.html, options.js) from a subfolder.
  */
 
@@ -75,10 +75,13 @@ async function fetchPageData(url: string) {
 }
 
 async function main() {
-  // Get the default URL from the command line.
+  // Get the default URL and optional suffix from the command line.
   const inputUrl = process.argv[2];
+  const suffixArg = process.argv[3] || '';
   if (!inputUrl) {
-    console.error('Error: No URL provided.\nUsage: bun run createExtension.ts <DEFAULT_URL>');
+    console.error(
+      'Error: No URL provided.\nUsage: bun run createExtension.ts <DEFAULT_URL> [OPTIONAL_SUFFIX]'
+    );
     process.exit(1);
   }
 
@@ -97,12 +100,14 @@ async function main() {
   // Fetch the page data to resolve the hostname (and possibly update it via a "continue" parameter).
   const { hostname, pageTitle } = await fetchPageData(inputUrl);
 
-  // Build the high-resolution favicon URL (64px) using Google's faviconV2 service.
-  const faviconUrl = `https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${hostname}&size=64`;
+  // Build the high-resolution favicon URL (32px) using Google's faviconV2 service.
+  const faviconUrl = `https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${hostname}&size=32`;
 
-  // Sanitize the page title (which is now just the hostname) for folder naming.
+  // Sanitize the page title and optional suffix for folder naming.
   const safeTitle = sanitizeForFilename(pageTitle);
-  const extensionDir = join(process.cwd(), `quick-launch-${safeTitle}`);
+  const safeSuffix = suffixArg ? sanitizeForFilename(suffixArg) : '';
+  const folderSuffix = safeSuffix ? `-${safeSuffix}` : '';
+  const extensionDir = join(process.cwd(), `quick-launch-${safeTitle}${folderSuffix}`);
 
   // Create the extension folder if it doesn't exist.
   if (!existsSync(extensionDir)) {
@@ -110,9 +115,13 @@ async function main() {
   }
 
   // Create manifest.json using Manifest V3.
+  // Append the optional suffix to the extension name (using the original suffix text, if provided).
+  const extensionName = suffixArg
+    ? `QuickLaunch: ${pageTitle} - ${suffixArg}`
+    : `QuickLaunch: ${pageTitle}`;
   const manifest = {
     manifest_version: 3,
-    name: `QuickLaunch: ${pageTitle}`,
+    name: extensionName,
     version: '1.0',
     description: `Opens a configurable URL when clicked. Default: ${defaultTarget}`,
     action: {

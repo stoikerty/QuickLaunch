@@ -9,7 +9,7 @@ Instead of having **an entire toolbar packed with bookmarks**, why not have a si
 ## What Is It?
 
 **QuickLaunch** is a Javascript-based tool that generates a custom Chrome extension for a single URL bookmark. This extension:
-- Fetches a **high-resolution 64px favicon** (fetched automatically from Google's faviconV2 service).
+- Fetches a **high-resolution 32px favicon** (fetched automatically from Google's faviconV2 service).
 - Lets you **click the toolbar button to open the URL you've configured**.
 - Includes an **options page so you can update the URL later**, without re-creating the extension again.
 - Resolves URLs (for example, handling Gmail redirects) to get the proper hostname and favicon.
@@ -31,6 +31,9 @@ Imagine opening Chrome and being able to click a single icon to jump directly to
    ```bash
    bun i
    bun start "https://mail.google.com/?authuser=your.email@example.com#inbox"
+
+   # or provide an optional suffix
+   bun start "https://mail.google.com/?authuser=your.email@example.com#inbox" optional_suffix
    ```
 
    It's just a typescript file so you can run it with any other tool you like that automatically converts typescript.
