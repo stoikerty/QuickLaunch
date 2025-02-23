@@ -3,10 +3,10 @@ const DEFAULT_URL = '__DEFAULT_URL__';
 chrome.action.onClicked.addListener(() => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const currentTab = tabs[0];
-    // Define common new tab URLs for Chromium-based browsers.
-    const newTabUrls = ['chrome://newtab/', 'chrome://newtab', 'about:newtab', 'about:newtab/'];
+    // Define new tab URL prefixes for Chromium-based browsers.
+    const newTabUrls = ['chrome://newtab', 'about:newtab', 'chrome://vivaldi-webui/startpage'];
 
-    if (currentTab && newTabUrls.includes(currentTab.url)) {
+    if (currentTab && newTabUrls.some((prefix) => currentTab.url.startsWith(prefix))) {
       // If current tab is a new tab, update it with the target URL.
       chrome.tabs.update(currentTab.id, { url: DEFAULT_URL });
     } else {
