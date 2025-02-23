@@ -12,9 +12,10 @@
  * However, the script fetches the page to resolve its hostname (and, in the case of Gmail,
  * to extract the "continue" URL) so that the favicon and extension name can be set based on that.
  *
- * The extension’s name will be "QuickLaunch: <hostname>" (with a suffix appended, if provided).
+ * The extension’s name will be "QuickLaunch: <hostname>" (with the suffix appended, if provided).
  *
- * This version fetches a high-resolution (32px) favicon using Google's faviconV2 service.
+ * This version fetches high-resolution favicons for multiple sizes (16px, 32px, 48px, 128px)
+ * using Google's faviconV2 service.
  * It also loads supporting files (background.js, options.html, options.js) from a subfolder.
  */
 
@@ -100,9 +101,6 @@ async function main() {
   // Fetch the page data to resolve the hostname (and possibly update it via a "continue" parameter).
   const { hostname, pageTitle } = await fetchPageData(inputUrl);
 
-  // Build the high-resolution favicon URL (32px) using Google's faviconV2 service.
-  const faviconUrl = `https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${hostname}&size=32`;
-
   // Sanitize the page title and optional suffix for folder naming.
   const safeTitle = sanitizeForFilename(pageTitle);
   const safeSuffix = suffixArg ? sanitizeForFilename(suffixArg) : '';
@@ -114,8 +112,10 @@ async function main() {
     mkdirSync(extensionDir);
   }
 
-  // Create manifest.json using Manifest V3.
-  // Append the optional suffix to the extension name (using the original suffix text, if provided).
+  // Define the icon sizes to fetch.
+  const iconSizes = [16, 32, 48, 128];
+
+  // Create manifest.json using Manifest V3 with defined icons.
   const extensionName = suffixArg
     ? `QuickLaunch: ${pageTitle} - ${suffixArg}`
     : `QuickLaunch: ${pageTitle}`;
@@ -124,9 +124,20 @@ async function main() {
     name: extensionName,
     version: '1.0',
     description: `Opens a configurable URL when clicked. Default: ${defaultTarget}`,
+    icons: {
+      '16': 'icon-16.png',
+      '32': 'icon-32.png',
+      '48': 'icon-48.png',
+      '128': 'icon-128.png',
+    },
     action: {
       default_title: `Go to ${pageTitle}`,
-      default_icon: 'icon.png',
+      default_icon: {
+        '16': 'icon-16.png',
+        '32': 'icon-32.png',
+        '48': 'icon-48.png',
+        '128': 'icon-128.png',
+      },
     },
     background: {
       service_worker: 'background.js',
@@ -156,24 +167,28 @@ async function main() {
   const optionsScript = readFileSync(optionsJsPath, 'utf8');
   writeFileSync(join(extensionDir, 'options.js'), optionsScript, 'utf8');
 
-  // Download the high-resolution favicon and save it as icon.png.
-  try {
-    const response = await fetch(faviconUrl);
-    if (!response.ok) {
-      throw new Error('Failed to fetch favicon. Status: ' + response.status);
+  // Fetch and save icons for each defined size.
+  for (const size of iconSizes) {
+    const iconUrl = `https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${hostname}&size=${size}`;
+    try {
+      const response = await fetch(iconUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch icon of size ${size}. Status: ${response.status}`);
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      writeFileSync(join(extensionDir, `icon-${size}.png`), buffer);
+    } catch (error: any) {
+      console.error(`Error downloading icon of size ${size}:`, error.message);
+      process.exit(1);
     }
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    writeFileSync(join(extensionDir, 'icon.png'), buffer);
-    console.log(`Chrome extension created successfully in folder "${extensionDir}".`);
-    console.log(
-      'Load it in Chrome via chrome://extensions (with Developer Mode enabled) using "Load unpacked".'
-    );
-    console.log('Use the Options page to change the target URL.');
-  } catch (error: any) {
-    console.error('Error downloading favicon:', error.message);
-    process.exit(1);
   }
+
+  console.log(`Chrome extension created successfully in folder "${extensionDir}".`);
+  console.log(
+    'Load it in Chrome via chrome://extensions (with Developer Mode enabled) using "Load unpacked".'
+  );
+  console.log('Use the Options page to change the target URL.');
 }
 
 main();
